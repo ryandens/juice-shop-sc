@@ -114,7 +114,7 @@ module.exports = function placeOrder () {
             eta: 5
           }
           if (req.body.orderDetails?.deliveryMethodId) {
-            const deliveryMethodFromModel = await DeliveryModel.findOne({ where: { id: req.body.orderDetails.deliveryMethodId } })
+            const deliveryMethodFromModel = await DeliveryModel.findOne({ where: { id: req.body.orderDetails.deliveryMethodId.toString() } })
             if (deliveryMethodFromModel != null) {
               deliveryMethod.deluxePrice = deliveryMethodFromModel.deluxePrice
               deliveryMethod.price = deliveryMethodFromModel.price
@@ -137,24 +137,24 @@ module.exports = function placeOrder () {
 
           if (req.body.UserId) {
             if (req.body.orderDetails && req.body.orderDetails.paymentId === 'wallet') {
-              const wallet = await WalletModel.findOne({ where: { UserId: req.body.UserId } })
+              const wallet = await WalletModel.findOne({ where: { UserId: req.body.UserId.toString() } })
               if ((wallet != null) && wallet.balance >= totalPrice) {
-                WalletModel.decrement({ balance: totalPrice }, { where: { UserId: req.body.UserId } }).catch((error: unknown) => {
+                WalletModel.decrement({ balance: totalPrice }, { where: { UserId: req.body.UserId.toString() } }).catch((error: unknown) => {
                   next(error)
                 })
               } else {
                 next(new Error('Insufficient wallet balance.'))
               }
             }
-            WalletModel.increment({ balance: totalPoints }, { where: { UserId: req.body.UserId } }).catch((error: unknown) => {
+            WalletModel.increment({ balance: totalPoints }, { where: { UserId: req.body.UserId.toString() } }).catch((error: unknown) => {
               next(error)
             })
           }
 
           db.ordersCollection.insert({
             promotionalAmount: discountAmount,
-            paymentId: req.body.orderDetails ? req.body.orderDetails.paymentId : null,
-            addressId: req.body.orderDetails ? req.body.orderDetails.addressId : null,
+            paymentId: req.body.orderDetails ? req.body.orderDetails.paymentId.toString() : null,
+            addressId: req.body.orderDetails ? req.body.orderDetails.addressId.toString() : null,
             orderId,
             delivered: false,
             email: (email ? email.replace(/[aeiou]/gi, '*') : undefined),
